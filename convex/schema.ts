@@ -15,6 +15,8 @@ export default defineSchema({
         userId: v.id("users"),
         subjectName: v.string(),
         professor: v.string(),
+        lecturesAttended: v.number(),
+        lecturesTotal: v.number(),
         type: v.union(v.literal("Theory"), v.literal("Practical")),
         description: v.optional(v.string()),
     }).index("by_user_id", ["userId"]),

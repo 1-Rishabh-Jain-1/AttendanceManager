@@ -9,6 +9,8 @@
  */
 
 import type * as http from "../http.js";
+import type * as lectures from "../lectures.js";
+import type * as subjects from "../subjects.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,6 +29,8 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   http: typeof http;
+  lectures: typeof lectures;
+  subjects: typeof subjects;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
