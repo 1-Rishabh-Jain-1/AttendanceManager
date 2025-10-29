@@ -1,6 +1,6 @@
 import { COLORS } from "@/constants/theme";
 import { api } from "@/convex/_generated/api";
-import { styles } from "@/styles/home.styles";
+import { styles } from "@/styles/index.styles";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "convex/react";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   Modal,
   Text,
   TextInput,
@@ -20,6 +21,7 @@ import { Dropdown } from "react-native-element-dropdown";
 export default function Index() {
   const { userId } = useAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const convexUser = useQuery(
     api.users.getUserByClerkId,
@@ -35,12 +37,11 @@ export default function Index() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [subjectName, setSubjectName] = useState("");
-  const [professor, setProfessor] = useState("");
   const [type, setType] = useState<"Theory" | "Practical">("Theory");
   const [description, setDescription] = useState("");
 
   const handleSave = async () => {
-    if (!convexUser || !subjectName || !professor) {
+    if (!convexUser || !subjectName) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -49,9 +50,8 @@ export default function Index() {
       await createSubject({
         userId: convexUser._id,
         subjectName,
-        professor,
-        lecturesAttended: 0,
-        lecturesTotal: 0,
+        hoursAttended: 0,
+        hoursTotal: 0,
         type,
         description,
       });
@@ -59,7 +59,6 @@ export default function Index() {
       Alert.alert("Success", "Subject added successfully!");
       setModalVisible(false);
       setSubjectName("");
-      setProfessor("");
       setType("Theory");
       setDescription("");
     } catch (err) {
@@ -101,29 +100,32 @@ export default function Index() {
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
-          const attended = item.lecturesAttended ?? 0;
-          const total = item.lecturesTotal ?? 0;
+          const attended = item.hoursAttended ?? 0;
+          const total = item.hoursTotal ?? 0;
           const attendance = calculateAttendance(attended, total);
 
           return (
             <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/subjectCalendar",
-                  params: { subjectId: item._id },
-                })
-              }
+              onPress={() => {
+                setLoading(true);
+                setTimeout(() => {
+                  setLoading(false);
+                  router.push({
+                    pathname: "/subjectCalendar",
+                    params: { subjectId: item._id },
+                  });
+                }, 500);
+              }}
               style={styles.card}
             >
               <Text style={styles.subjectName}>{item.subjectName}</Text>
-              <Text style={styles.professor}>{item.professor}</Text>
               <Text style={styles.attendance}>Attendance: {attendance}</Text>
             </TouchableOpacity>
           );
         }}
       />
 
-      <Modal visible={modalVisible} transparent animationType="slide">
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)} allowSwipeDismissal={true} >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Subject</Text>
@@ -135,13 +137,6 @@ export default function Index() {
               value={subjectName}
               onChangeText={setSubjectName}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Professor Name"
-              placeholderTextColor={COLORS.grey}
-              value={professor}
-              onChangeText={setProfessor}
-            />
 
             <Dropdown
               style={styles.dropdown}
@@ -149,12 +144,31 @@ export default function Index() {
               placeholderStyle={styles.placeholderStyle}
               selectedTextStyle={styles.selectedTextStyle}
               iconStyle={styles.iconStyle}
+              itemTextStyle={styles.itemTextStyle}
+              activeColor={COLORS.primary + "33"}
               data={dropdownData}
               labelField="label"
               valueField="value"
               placeholder="Select Type"
               value={type}
               onChange={(item) => setType(item.value as "Theory" | "Practical")}
+              renderItem={(item) => (
+                <View
+                  style={[
+                    styles.dropdownItem,
+                    item.value === type && styles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.itemTextStyle,
+                      item.value === type && styles.dropdownItemTextSelected,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+              )}
               renderRightIcon={() => (
                 <Ionicons name="chevron-down" size={18} color={COLORS.grey} />
               )}
@@ -169,17 +183,27 @@ export default function Index() {
               multiline
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleSave}>
-              <Text style={styles.buttonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+      {/* Loader */}
+      <Modal visible={loading} transparent animationType="fade">
+        <View style={styles.loaderContainer}>
+          <Image
+            source={require("@/assets/loader.gif")}
+            style={styles.loaderGif}
+            resizeMode="contain"
+          />
         </View>
       </Modal>
     </View>

@@ -19,15 +19,15 @@ export const getLectureSummaryBySubjectId = query({
             .withIndex("by_subject_id", (q) => q.eq("subjectId", args.subjectId))
             .collect();
 
-        const totalAttended = lectures.reduce((sum, l) => sum + l.lecturesAttended, 0);
-        const totalLectures = lectures.reduce((sum, l) => sum + l.lecturesTotal, 0);
+        const hoursAttended = lectures.reduce((sum, l) => sum + l.hoursAttended, 0);
+        const hoursTotal = lectures.reduce((sum, l) => sum + l.hoursTotal, 0);
 
         return {
             subjectId: args.subjectId,
-            totalAttended,
-            totalLectures,
-            attendancePercent: totalLectures
-                ? Math.round((totalAttended / totalLectures) * 100)
+            hoursAttended,
+            hoursTotal,
+            attendancePercent: hoursTotal
+                ? Math.round((hoursAttended / hoursTotal) * 100)
                 : 0,
         };
     },
@@ -51,8 +51,9 @@ export const createOrUpdateLecture = mutation({
     args: {
         subjectId: v.id("subjects"),
         date: v.string(),
-        lecturesTotal: v.number(),
-        lecturesAttended: v.number(),
+        professor: v.optional(v.string()),
+        hoursTotal: v.number(),
+        hoursAttended: v.number(),
         note: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -64,19 +65,49 @@ export const createOrUpdateLecture = mutation({
 
         if (existing) {
             await ctx.db.patch(existing._id, {
-                lecturesTotal: args.lecturesTotal,
-                lecturesAttended: args.lecturesAttended,
+                professor: args.professor,
+                hoursTotal: args.hoursTotal,
+                hoursAttended: args.hoursAttended,
                 note: args.note,
             });
         } else {
             await ctx.db.insert("lectures", args);
         }
+
+        const lectures = await ctx.db
+            .query("lectures")
+            .withIndex("by_subject_id", (q) => q.eq("subjectId", args.subjectId))
+            .collect();
+
+        const hoursAttended = lectures.reduce((sum, l) => sum + l.hoursAttended, 0);
+        const hoursTotal = lectures.reduce((sum, l) => sum + l.hoursTotal, 0);
+
+        await ctx.db.patch(args.subjectId, {
+            hoursAttended,
+            hoursTotal,
+        });
     },
 });
 
 export const deleteLecture = mutation({
     args: { lectureId: v.id("lectures") },
     handler: async (ctx, args) => {
+        const lecture = await ctx.db.get(args.lectureId);
+        if (!lecture) return;
+
         await ctx.db.delete(args.lectureId);
+
+        const lectures = await ctx.db
+            .query("lectures")
+            .withIndex("by_subject_id", (q) => q.eq("subjectId", lecture.subjectId))
+            .collect();
+
+        const hoursAttended = lectures.reduce((sum, l) => sum + l.hoursAttended, 0);
+        const hoursTotal = lectures.reduce((sum, l) => sum + l.hoursTotal, 0);
+        
+        await ctx.db.patch(lecture.subjectId, {
+            hoursAttended,
+            hoursTotal,
+        });
     },
 });

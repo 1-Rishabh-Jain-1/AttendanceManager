@@ -5,15 +5,12 @@ import { styles } from "@/styles/subjectCalendar.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, Image, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 
 export default function SubjectCalendar() {
-    const { subjectId } = useLocalSearchParams<{
-        subjectId: string;
-    }>();
-
+    const { subjectId } = useLocalSearchParams<{ subjectId: string; }>();
 
     const subject = useQuery(
         api.subjects.getSubjectById,
@@ -23,9 +20,10 @@ export default function SubjectCalendar() {
     const subjectName = subject?.subjectName ? subject?.subjectName : " ";
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [lecturesTotal, setLecturesTotal] = useState("");
-    const [lecturesAttended, setLecturesAttended] = useState("");
+    const [hoursTotal, setHoursTotal] = useState("");
+    const [hoursAttended, setHoursAttended] = useState("");
     const [note, setNote] = useState("");
+    const [professor, setProfessor] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -46,12 +44,14 @@ export default function SubjectCalendar() {
         }
 
         if (lecture) {
-            setLecturesTotal(String(lecture.lecturesTotal));
-            setLecturesAttended(String(lecture.lecturesAttended));
+            setProfessor(String(lecture.professor));
+            setHoursTotal(String(lecture.hoursTotal));
+            setHoursAttended(String(lecture.hoursAttended));
             setNote(lecture.note ?? "");
         } else {
-            setLecturesTotal("");
-            setLecturesAttended("");
+            setProfessor("");
+            setHoursTotal("");
+            setHoursAttended("");
             setNote("");
         }
     }, [lecture]);
@@ -61,15 +61,19 @@ export default function SubjectCalendar() {
         setLoading(true);
     };
 
-    const handleSubmit = async () => {
-        if (!selectedDate || !subjectId) return;
+    const handleSave = async () => {
+        if (!selectedDate || !subjectId || Number(hoursTotal) === 0) {
+            Alert.alert("Error", "Please fill in all required fields");
+            return;
+        }
 
         try {
             await saveLecture({
                 subjectId: subjectId as Id<"subjects">,
                 date: selectedDate,
-                lecturesTotal: Number(lecturesTotal),
-                lecturesAttended: Number(lecturesAttended),
+                professor: professor,
+                hoursTotal: Number(hoursTotal),
+                hoursAttended: Number(hoursAttended),
                 note,
             });
             Alert.alert("Success", "Lecture data saved!");
@@ -82,7 +86,12 @@ export default function SubjectCalendar() {
     };
 
     const handleDelete = async () => {
-        if (!lecture) return;
+        if (!lecture) {
+            setModalVisible(false);
+            setSelectedDate(null);
+            return;
+        }
+
         Alert.alert(
             "Confirm Delete",
             "Are you sure you want to delete this record?",
@@ -110,7 +119,13 @@ export default function SubjectCalendar() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="arrow-back" size={24} color={COLORS.white} onPress={() => router.replace("/")} />
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.replace("/")}
+                >
+                    <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+                </TouchableOpacity>
+
                 <Text style={styles.title}>{subjectName}</Text>
             </View>
 
@@ -142,63 +157,78 @@ export default function SubjectCalendar() {
             </Modal>
 
             {/* Lecture Modal */}
-            <Modal visible={modalVisible} transparent animationType="slide">
+            <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
-                                {lecture ? "Update Lecture" : "Add Lecture"} – {selectedDate}
-                            </Text>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContainer}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>
+                                    {lecture ? "Update Lecture" : "Add Lecture"} :– {selectedDate}
+                                </Text>
+                            </View>
+
+                            <Text style={styles.modalSubtitle}>Total Hours</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Total Lectures"
+                                placeholderTextColor={COLORS.grey}
+                                keyboardType="numeric"
+                                value={hoursTotal}
+                                onChangeText={setHoursTotal}
+                            />
+
+                            <Text style={styles.modalSubtitle}>Hours Attended</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Lectures Attended"
+                                placeholderTextColor={COLORS.grey}
+                                keyboardType="numeric"
+                                value={hoursAttended}
+                                onChangeText={setHoursAttended}
+                            />
+
+                            <Text style={styles.modalSubtitle}>Professor</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="(Optional)"
+                                placeholderTextColor={COLORS.grey}
+                                value={professor}
+                                onChangeText={setProfessor}
+                            />
+
+                            <Text style={styles.modalSubtitle}>Note</Text>
+                            <TextInput
+                                style={[styles.input, { height: 80 }]}
+                                placeholder="(Optional)"
+                                placeholderTextColor={COLORS.grey}
+                                multiline
+                                value={note}
+                                onChangeText={setNote}
+                            />
+
+                            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                                <Text style={styles.buttonText}>Save Lecture</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                                <Text style={styles.buttonText}>Delete Lecture</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setSelectedDate(null);
+                                    setModalVisible(false);
+                                }}
+                                style={styles.cancelButton}
+                            >
+                                <Text style={styles.cancelText}>Cancel</Text>
+                            </TouchableOpacity>
                         </View>
-
-                        <Text style={styles.modalSubtitle}>Total Lectures</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Total Lectures"
-                            placeholderTextColor={COLORS.grey}
-                            keyboardType="numeric"
-                            value={lecturesTotal}
-                            onChangeText={setLecturesTotal}
-                        />
-
-                        <Text style={styles.modalSubtitle}>Lectures Attended</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Lectures Attended"
-                            placeholderTextColor={COLORS.grey}
-                            keyboardType="numeric"
-                            value={lecturesAttended}
-                            onChangeText={setLecturesAttended}
-                        />
-
-                        <Text style={styles.modalSubtitle}>Note</Text>
-                        <TextInput
-                            style={[styles.input, { height: 80 }]}
-                            placeholder="Optional Note"
-                            placeholderTextColor={COLORS.grey}
-                            multiline
-                            value={note}
-                            onChangeText={setNote}
-                        />
-
-                        <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-                            <Text style={styles.buttonText}>Save Lecture</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                            <Text style={styles.buttonText}>Delete Lecture</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => {
-                                setSelectedDate(null);
-                                setModalVisible(false);
-                            }}
-                            style={styles.cancelButton}
-                        >
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                    </View>
+                    </ScrollView>
                 </View>
             </Modal>
         </View>

@@ -14,9 +14,8 @@ export default defineSchema({
     subjects: defineTable({
         userId: v.id("users"),
         subjectName: v.string(),
-        professor: v.string(),
-        lecturesAttended: v.number(),
-        lecturesTotal: v.number(),
+        hoursAttended: v.number(),
+        hoursTotal: v.number(),
         type: v.union(v.literal("Theory"), v.literal("Practical")),
         description: v.optional(v.string()),
     }).index("by_user_id", ["userId"]),
@@ -24,8 +23,9 @@ export default defineSchema({
     lectures: defineTable({
         subjectId: v.id("subjects"),
         date: v.string(),
-        lecturesAttended: v.number(),
-        lecturesTotal: v.number(),
+        professor: v.optional(v.string()),
+        hoursAttended: v.number(),
+        hoursTotal: v.number(),
         note: v.optional(v.string()),
     }).index("by_subject_id", ["subjectId"]),
 });

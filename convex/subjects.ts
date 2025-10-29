@@ -5,9 +5,8 @@ export const createSubject = mutation({
     args: {
         userId: v.id("users"),
         subjectName: v.string(),
-        professor: v.string(),
-        lecturesAttended: v.number(),
-        lecturesTotal: v.number(),
+        hoursAttended: v.number(),
+        hoursTotal: v.number(),
         type: v.union(v.literal("Theory"), v.literal("Practical")),
         description: v.optional(v.string()),
     },
@@ -23,9 +22,8 @@ export const createSubject = mutation({
         await ctx.db.insert("subjects", {
             userId: args.userId,
             subjectName: args.subjectName,
-            professor: args.professor,
-            lecturesAttended: args.lecturesAttended,
-            lecturesTotal: args.lecturesTotal,
+            hoursAttended: args.hoursAttended,
+            hoursTotal: args.hoursTotal,
             type: args.type,
             description: args.description,
         });
@@ -55,27 +53,21 @@ export const updateSubject = mutation({
     args: {
         subjectId: v.id("subjects"),
         subjectName: v.string(),
-        professor: v.string(),
-        lecturesAttended: v.number(),
-        lecturesTotal: v.number(),
         type: v.union(v.literal("Theory"), v.literal("Practical")),
         description: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         await ctx.db.patch(args.subjectId, {
             subjectName: args.subjectName,
-            professor: args.professor,
-            lecturesAttended: args.lecturesAttended,
-            lecturesTotal: args.lecturesTotal,
             type: args.type,
             description: args.description,
         });
     },
 });
 
-export const deleteLecture = mutation({
-    args: { lectureId: v.id("lectures") },
+export const deleteSubject = mutation({
+    args: { subjectId: v.id("subjects") },
     handler: async (ctx, args) => {
-        await ctx.db.delete(args.lectureId);
+        await ctx.db.delete(args.subjectId);
     },
 });

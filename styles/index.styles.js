@@ -6,6 +6,7 @@ export const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
         padding: 16,
+        marginBottom: 40,
     },
     loadingContainer: {
         flex: 1,
@@ -75,6 +76,7 @@ export const styles = StyleSheet.create({
         borderRadius: 8,
         borderColor: COLORS.grey,
         borderWidth: 1,
+        marginTop: 5,
     },
     placeholderStyle: {
         color: COLORS.grey,
@@ -88,23 +90,47 @@ export const styles = StyleSheet.create({
         width: 20,
         height: 20,
     },
-    button: {
+    selectedItemStyle: {
+        backgroundColor: COLORS.primary + "22",
+        borderRadius: 6,
+    },
+    itemTextStyle: {
+        color: COLORS.white,
+        fontSize: 16,
+        paddingVertical: 10,
+    },
+    dropdownItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+    },
+    dropdownItemSelected: {
+        backgroundColor: COLORS.primary + "22",
+    },
+    dropdownItemTextSelected: {
+        color: COLORS.primary,
+    },
+    saveButton: {
         backgroundColor: COLORS.primary,
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: "center",
         marginTop: 10,
     },
-    buttonText: {
+    saveButtonText: {
         color: COLORS.white,
         fontWeight: "bold",
         fontSize: 16,
     },
     cancelButton: {
         marginTop: 10,
+        borderWidth: 1,
+        borderColor: COLORS.grey,
+        borderRadius: 8,
+        paddingVertical: 12,
         alignItems: "center",
     },
-    cancelText: {
+    cancelButtonText: {
         color: COLORS.grey,
         fontSize: 14,
     },
@@ -129,5 +155,16 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         marginTop: 8,
+    },
+    loaderContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.6)",
+    },
+    loaderGif: {
+        width: 120,
+        height: 120,
+        borderRadius: 30,
     },
 });

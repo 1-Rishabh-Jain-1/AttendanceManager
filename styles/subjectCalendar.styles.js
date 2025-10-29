@@ -1,4 +1,6 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
     container: {
@@ -13,6 +15,12 @@ export const styles = StyleSheet.create({
         marginBottom: 20,
         position: "relative",
     },
+    backButton: {
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     title: {
         fontSize: 22,
         color: "white",
@@ -26,17 +34,31 @@ export const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 40,
+        width: "100%",
+    },
     modalContent: {
         backgroundColor: "#1C1C1E",
         padding: 20,
         borderRadius: 16,
-        width: "85%",
+        width: SCREEN_WIDTH * 0.85,
+        alignSelf: "center",
+        elevation: 6,
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
     },
     modalTitle: {
         color: "white",
         fontSize: 18,
         fontWeight: "bold",
         marginBottom: 16,
+        textAlign: "center",
     },
     input: {
         backgroundColor: "#2C2C2E",
@@ -49,13 +71,7 @@ export const styles = StyleSheet.create({
         backgroundColor: "#4ADE80",
         borderRadius: 10,
         padding: 14,
-        alignItems: "center",
-        marginTop: 8,
-    },
-    cancelButton: {
-        backgroundColor: "#2A2A2A",
-        borderRadius: 10,
-        padding: 14,
+        justifyContent: "center",
         alignItems: "center",
         marginTop: 8,
     },
@@ -63,6 +79,15 @@ export const styles = StyleSheet.create({
         backgroundColor: "#e62828be",
         borderRadius: 10,
         padding: 14,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 8,
+    },
+    cancelButton: {
+        backgroundColor: "#2A2A2A",
+        borderRadius: 10,
+        padding: 14,
+        justifyContent: "center",
         alignItems: "center",
         marginTop: 8,
     },
