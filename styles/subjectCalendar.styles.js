@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/theme";
 import { Dimensions, StyleSheet } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -15,18 +16,30 @@ export const styles = StyleSheet.create({
         marginBottom: 20,
         position: "relative",
     },
+    titleContainer: {
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     backButton: {
         width: 40,
         height: 40,
+        position: "absolute",
+        left: 16,
+        zIndex: 2,
         justifyContent: "center",
         alignItems: "center",
     },
     title: {
+        color: COLORS.white,
         fontSize: 22,
-        color: "white",
-        textAlign: "center",
-        fontWeight: "bold",
-        flex: 1,
+        fontWeight: "700",
+    },
+    subtitle: {
+        color: COLORS.grey,
+        fontSize: 14,
+        fontWeight: "500",
+        marginTop: 2,
     },
     modalContainer: {
         flex: 1,
@@ -119,5 +132,43 @@ export const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 10,
+    },
+    legendContainer: {
+        marginTop: 20,
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        paddingHorizontal: 16,
+    },
+    legendRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: "80%",
+        marginVertical: 4,
+        gap: 8,
+    },
+    legendColorBox: {
+        height: 14,
+        width: 14,
+        borderRadius: 3,
+        marginRight: 10,
+    },
+    legendText: {
+        color: COLORS.white,
+        fontSize: 14,
+        lineHeight: 18,
+        textAlignVertical: "center",
+    },
+    attendanceMessageContainer: {
+        marginTop: 16,
+        alignItems: "center",
+        paddingHorizontal: 16,
+        justifyContent: "center",
+    },
+    attendanceMessageText: {
+        fontSize: 15,
+        fontWeight: "600",
+        textAlign: "center",
     },
 });

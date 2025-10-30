@@ -104,10 +104,29 @@ export const deleteLecture = mutation({
 
         const hoursAttended = lectures.reduce((sum, l) => sum + l.hoursAttended, 0);
         const hoursTotal = lectures.reduce((sum, l) => sum + l.hoursTotal, 0);
-        
+
         await ctx.db.patch(lecture.subjectId, {
             hoursAttended,
             hoursTotal,
+        });
+    },
+});
+
+export const getLecturesByMonth = query({
+    args: {
+        subjectId: v.id("subjects"),
+        year: v.number(),
+        month: v.number(),
+    },
+    handler: async (ctx, args) => {
+        const allLectures = await ctx.db
+            .query("lectures")
+            .withIndex("by_subject_id", (q) => q.eq("subjectId", args.subjectId))
+            .collect();
+
+        return allLectures.filter((lecture) => {
+            const d = new Date(lecture.date);
+            return d.getFullYear() === args.year && d.getMonth() + 1 === args.month;
         });
     },
 });

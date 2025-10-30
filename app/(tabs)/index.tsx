@@ -109,11 +109,11 @@ export default function Index() {
               onPress={() => {
                 setLoading(true);
                 setTimeout(() => {
-                  setLoading(false);
                   router.push({
                     pathname: "/subjectCalendar",
                     params: { subjectId: item._id },
                   });
+                  setLoading(false);
                 }, 500);
               }}
               style={styles.card}
