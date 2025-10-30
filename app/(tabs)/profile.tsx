@@ -55,51 +55,52 @@ export default function Profile() {
   };
 
   const handleUpdateSubject = async () => {
-    if (!subjectName.trim()) return alert('Please enter a subject name');
-    try {
-      await updateSubject({
-        subjectId: selectedSubject._id,
-        subjectName,
-        type: subjectType,
-      });
-      alert('Subject updated successfully');
-      setModalVisible(false);
-      setSelectedSubject(null);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update subject');
-    }
-  };
+  if (!subjectName.trim()) {
+    Alert.alert("Missing Name", "Please enter a subject name");
+    return;
+  }
+  try {
+    await updateSubject({
+      subjectId: selectedSubject._id,
+      subjectName,
+      type: subjectType,
+    });
+    setModalVisible(false);
+    setSelectedSubject(null);
+  } catch (err) {
+    console.error(err);
+    Alert.alert("Error", "Failed to update subject");
+  }
+};
 
-  const handleDeleteSubject = async () => {
-    try {
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this record?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await deleteSubject({ subjectId: selectedSubject._id });
-                Alert.alert("Deleted", "Subject removed successfully");
-                setModalVisible(false);
-                setSelectedSubject(null);
-              } catch (err) {
-                console.error(err);
-                Alert.alert("Error", "Failed to delete lecture");
-              }
-            },
+const handleDeleteSubject = async () => {
+  try {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this record?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteSubject({ subjectId: selectedSubject._id });
+              setModalVisible(false);
+              setSelectedSubject(null);
+            } catch (err) {
+              console.error(err);
+              Alert.alert("Error", "Failed to delete subject");
+            }
           },
-        ]
-      );
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete subject');
-    }
-  };
+        },
+      ]
+    );
+  } catch (err) {
+    console.error(err);
+    Alert.alert("Error", "Failed to delete subject");
+  }
+};
 
   if (!convexUser) {
     return (
@@ -189,6 +190,7 @@ export default function Profile() {
                 placeholder="Enter subject name"
                 placeholderTextColor={COLORS.grey}
                 value={subjectName}
+                maxLength={50}
                 onChangeText={setSubjectName}
               />
 
@@ -213,6 +215,7 @@ export default function Profile() {
                 placeholder="Description (optional)"
                 placeholderTextColor={COLORS.grey}
                 value={description}
+                maxLength={500}
                 onChangeText={setDescription}
                 multiline
               />

@@ -6,22 +6,24 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  FlatList,
-  Image,
-  Modal,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, FlatList, Image, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 
 export default function Index() {
   const { userId } = useAuth();
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [subjectName, setSubjectName] = useState("");
+  const [type, setType] = useState<"Theory" | "Practical">("Theory");
+  const [description, setDescription] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const dropdownData = [
+    { label: "Theory", value: "Theory" },
+    { label: "Practical", value: "Practical" },
+  ];
 
   const convexUser = useQuery(
     api.users.getUserByClerkId,
@@ -34,11 +36,6 @@ export default function Index() {
   );
 
   const createSubject = useMutation(api.subjects.createSubject);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [subjectName, setSubjectName] = useState("");
-  const [type, setType] = useState<"Theory" | "Practical">("Theory");
-  const [description, setDescription] = useState("");
 
   const handleSave = async () => {
     if (!convexUser || !subjectName) {
@@ -56,7 +53,6 @@ export default function Index() {
         description,
       });
 
-      Alert.alert("Success", "Subject added successfully!");
       setModalVisible(false);
       setSubjectName("");
       setType("Theory");
@@ -80,11 +76,6 @@ export default function Index() {
     return `${Math.round((attended / total) * 100)}%`;
   };
 
-  const dropdownData = [
-    { label: "Theory", value: "Theory" },
-    { label: "Practical", value: "Practical" },
-  ];
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -97,9 +88,11 @@ export default function Index() {
       <FlatList
         style={styles.subjectList}
         data={subjects}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(subject) => subject._id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
+          const subjectId = item._id;
+          const subjectName = item.subjectName ?? "";
           const attended = item.hoursAttended ?? 0;
           const total = item.hoursTotal ?? 0;
           const attendance = calculateAttendance(attended, total);
@@ -111,21 +104,27 @@ export default function Index() {
                 setTimeout(() => {
                   router.push({
                     pathname: "/subjectCalendar",
-                    params: { subjectId: item._id },
+                    params: { subjectId },
                   });
                   setLoading(false);
                 }, 500);
               }}
               style={styles.card}
             >
-              <Text style={styles.subjectName}>{item.subjectName}</Text>
+              <Text style={styles.subjectName}>{subjectName}</Text>
               <Text style={styles.attendance}>Attendance: {attendance}</Text>
             </TouchableOpacity>
           );
         }}
       />
 
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)} allowSwipeDismissal={true} >
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+        allowSwipeDismissal={true}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Subject</Text>
@@ -135,6 +134,7 @@ export default function Index() {
               placeholder="Subject Name"
               placeholderTextColor={COLORS.grey}
               value={subjectName}
+              maxLength={50}
               onChangeText={setSubjectName}
             />
 
@@ -151,6 +151,8 @@ export default function Index() {
               valueField="value"
               placeholder="Select Type"
               value={type}
+              onFocus={() => setDropdownOpen(true)}
+              onBlur={() => setDropdownOpen(false)}
               onChange={(item) => setType(item.value as "Theory" | "Practical")}
               renderItem={(item) => (
                 <View
@@ -170,7 +172,11 @@ export default function Index() {
                 </View>
               )}
               renderRightIcon={() => (
-                <Ionicons name="chevron-down" size={18} color={COLORS.grey} />
+                <Ionicons
+                  name={dropdownOpen ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={COLORS.grey}
+                />
               )}
             />
 
@@ -180,6 +186,7 @@ export default function Index() {
               placeholderTextColor={COLORS.grey}
               value={description}
               onChangeText={setDescription}
+              maxLength={500}
               multiline
             />
 
@@ -196,8 +203,12 @@ export default function Index() {
           </View>
         </View>
       </Modal>
-      {/* Loader */}
-      <Modal visible={loading} transparent animationType="fade">
+
+      <Modal
+        visible={loading}
+        transparent
+        animationType="fade"
+      >
         <View style={styles.loaderContainer}>
           <Image
             source={require("@/assets/loader.gif")}

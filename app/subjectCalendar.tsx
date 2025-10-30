@@ -16,6 +16,7 @@ export default function SubjectCalendar() {
         api.subjects.getSubjectById,
         subjectId ? { subjectId: subjectId as Id<"subjects"> } : "skip"
     );
+
     const subjectName = subject?.subjectName || " ";
     const subjectType = subject?.type ?? "Theory";
     const subjectHoursAttended = subject?.hoursAttended ?? 0;
@@ -32,6 +33,45 @@ export default function SubjectCalendar() {
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
     const [monthCache, setMonthCache] = useState<Record<string, any[]>>({});
+
+    const todayStr = today.toISOString().split("T")[0];
+
+    useEffect(() => {
+        return () => {
+            setLoading(false);
+            setModalVisible(false);
+            setSelectedDate(null);
+        };
+    }, []);
+
+    const lecture = useQuery(
+        api.lectures.getLectureByDate,
+        selectedDate && subjectId
+            ? { subjectId: subjectId as Id<"subjects">, date: selectedDate }
+            : "skip"
+    );
+
+    useEffect(() => {
+        if (lecture) {
+            setProfessor(String(lecture.professor || ""));
+            setHoursTotal(String(lecture.hoursTotal ?? ""));
+            setHoursAttended(String(lecture.hoursAttended ?? ""));
+            setNote(lecture.note ?? "");
+        } else {
+            setProfessor("");
+            setHoursTotal("");
+            setHoursAttended("");
+            setNote("");
+        }
+
+        if (selectedDate) {
+            setLoading(false);
+            setModalVisible(true);
+        }
+    }, [lecture]);
+
+    const saveLecture = useMutation(api.lectures.createOrUpdateLecture);
+    const deleteLecture = useMutation(api.lectures.deleteLecture);
 
     const calculateAttendanceAllowance = (hoursAttended: number, hoursTotal: number, type: string) => {
         if (!hoursTotal || hoursTotal === 0) {
@@ -85,8 +125,6 @@ export default function SubjectCalendar() {
     };
 
     useEffect(() => {
-        let cancelled = false;
-
         const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
         const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
         const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
@@ -102,7 +140,6 @@ export default function SubjectCalendar() {
             try {
                 await Promise.all(
                     missing.map(async (k) => {
-                        if (cancelled) return;
                         const [yStr, mStr] = k.split("-");
                         const y = Number(yStr);
                         const m = Number(mStr);
@@ -112,17 +149,15 @@ export default function SubjectCalendar() {
                                 year: y,
                                 month: m,
                             });
-                            if (cancelled) return;
                             setMonthCache((prev) => ({ ...prev, [k]: data || [] }));
                         } catch (e) {
                             console.error("prefetch month error", e);
-                            if (cancelled) return;
                             setMonthCache((prev) => ({ ...prev, [k]: [] }));
                         }
                     })
                 );
             } finally {
-                if (!cancelled) setLoading(false);
+                setLoading(false);
             }
         };
 
@@ -135,48 +170,7 @@ export default function SubjectCalendar() {
         } else {
             doPrefetch();
         }
-
-        return () => {
-            cancelled = true;
-        };
     }, [subjectId, currentMonth, currentYear]);
-
-    const lecture = useQuery(
-        api.lectures.getLectureByDate,
-        selectedDate && subjectId
-            ? { subjectId: subjectId as Id<"subjects">, date: selectedDate }
-            : "skip"
-    );
-
-    const saveLecture = useMutation(api.lectures.createOrUpdateLecture);
-    const deleteLecture = useMutation(api.lectures.deleteLecture);
-
-    useEffect(() => {
-        if (lecture) {
-            setProfessor(String(lecture.professor || ""));
-            setHoursTotal(String(lecture.hoursTotal ?? ""));
-            setHoursAttended(String(lecture.hoursAttended ?? ""));
-            setNote(lecture.note ?? "");
-        } else {
-            setProfessor("");
-            setHoursTotal("");
-            setHoursAttended("");
-            setNote("");
-        }
-
-        if (selectedDate) {
-            setLoading(false);
-            setModalVisible(true);
-        }
-    }, [lecture]);
-
-    useEffect(() => {
-        return () => {
-            setLoading(false);
-            setModalVisible(false);
-            setSelectedDate(null);
-        };
-    }, []);
 
     const handleDayPress = async (day: any) => {
         setSelectedDate(day.dateString);
@@ -261,8 +255,6 @@ export default function SubjectCalendar() {
         ]);
     };
 
-    const todayStr = today.toISOString().split("T")[0];
-
     const markedDates = useMemo(() => {
         const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
         const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
@@ -311,7 +303,7 @@ export default function SubjectCalendar() {
         if (!marks[todayStr]) {
             marks[todayStr] = {
                 customStyles: {
-                    text: { color: COLORS.white},
+                    text: { color: COLORS.white },
                 },
             };
         } else {
@@ -377,16 +369,44 @@ export default function SubjectCalendar() {
                             </View>
 
                             <Text style={styles.modalSubtitle}>Hours Attended</Text>
-                            <TextInput style={styles.input} placeholder="Lectures Attended" placeholderTextColor={COLORS.grey} keyboardType="numeric" value={hoursAttended} onChangeText={setHoursAttended} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Lectures Attended"
+                                placeholderTextColor={COLORS.grey}
+                                keyboardType="numeric"
+                                value={hoursAttended}
+                                maxLength={2}
+                                onChangeText={setHoursAttended}
+                            />
 
                             <Text style={styles.modalSubtitle}>Total Hours</Text>
-                            <TextInput style={styles.input} placeholder="Total Lectures" placeholderTextColor={COLORS.grey} keyboardType="numeric" value={hoursTotal} onChangeText={setHoursTotal} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Total Lectures"
+                                placeholderTextColor={COLORS.grey}
+                                keyboardType="numeric"
+                                value={hoursTotal}
+                                maxLength={2}
+                                onChangeText={setHoursTotal} />
 
                             <Text style={styles.modalSubtitle}>Professor</Text>
-                            <TextInput style={styles.input} placeholder="(Optional)" placeholderTextColor={COLORS.grey} value={professor} onChangeText={setProfessor} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="(Optional)"
+                                placeholderTextColor={COLORS.grey}
+                                value={professor}
+                                maxLength={50}
+                                onChangeText={setProfessor} />
 
                             <Text style={styles.modalSubtitle}>Note</Text>
-                            <TextInput style={[styles.input, { height: 80 }]} placeholder="(Optional)" placeholderTextColor={COLORS.grey} multiline value={note} onChangeText={setNote} />
+                            <TextInput
+                                style={[styles.input, { height: 80 }]}
+                                placeholder="(Optional)"
+                                placeholderTextColor={COLORS.grey}
+                                multiline
+                                value={note}
+                                maxLength={500}
+                                onChangeText={setNote} />
 
                             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                                 <Text style={styles.buttonText}>Save Lecture</Text>
