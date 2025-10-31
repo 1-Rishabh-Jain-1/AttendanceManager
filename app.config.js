@@ -1,4 +1,6 @@
-{
+import 'dotenv/config';
+
+export default {
   "expo": {
     "name": "AttendanceManager",
     "slug": "AttendanceManager",
@@ -46,6 +48,9 @@
       "reactCompiler": true
     },
     "extra": {
+      EXPO_PUBLIC_CONVEX_URL: process.env.EXPO_PUBLIC_CONVEX_URL,
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
       "router": {},
       "eas": {
         "projectId": "bdbbae13-8624-406d-8863-e178f4ef52a1"
