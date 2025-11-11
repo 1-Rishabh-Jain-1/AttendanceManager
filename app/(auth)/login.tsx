@@ -2,6 +2,7 @@ import { COLORS } from '@/constants/theme';
 import { styles } from '@/styles/auth.styles';
 import { useSSO } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from "expo-linking";
 import { useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
@@ -10,13 +11,20 @@ export default function login() {
   const router = useRouter();
   const handleGoogleSignIn = async () => {
     try {
-      const {createdSessionId, setActive} = await startSSOFlow({strategy: 'oauth_google'});
+      const redirectUrl = Linking.createURL("/oauth-callback");
+      console.log("Redirect URL:", redirectUrl);
+
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+        redirectUrl,
+      });
+
       if (setActive && createdSessionId) {
-        setActive({session: createdSessionId});
+        await setActive({ session: createdSessionId });
         router.replace("/(tabs)");
       }
     } catch (error) {
-      console.log("Error: " + error);
+      console.error("Google Sign-In Error:", error);
     }
   }
 
