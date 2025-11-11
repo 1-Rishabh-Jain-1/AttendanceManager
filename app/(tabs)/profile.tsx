@@ -64,6 +64,7 @@ export default function Profile() {
       subjectId: selectedSubject._id,
       subjectName,
       type: subjectType,
+      description: description,
     });
     setModalVisible(false);
     setSelectedSubject(null);

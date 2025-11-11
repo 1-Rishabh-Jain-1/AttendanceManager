@@ -15,6 +15,7 @@ export const createSubject = mutation({
             .query("subjects")
             .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
             .filter((q) => q.eq(q.field("subjectName"), args.subjectName))
+            .filter((q) => q.eq(q.field("type"), args.type))
             .first();
 
         if (existingSubject) return;

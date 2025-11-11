@@ -33,7 +33,7 @@ export default function login() {
       {/* ILLUSTRATION */}
       <View style={styles.illustrationContainer}>
         <Image
-          source={require("../../assets/images/auth-bg-1.svg")}
+          source={{uri: "https://storyset.com/illustration/online-wishes/bro"}}
           style={styles.illustration}
           resizeMode='cover'
         />
