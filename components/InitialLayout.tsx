@@ -8,15 +8,15 @@ export default function InitialLayout() {
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLoaded) return;
+        // if (!isLoaded) return;
 
-        const inAuthScreen = segments[0] === "(auth)";
+        // const inAuthScreen = segments[0] === "(auth)";
 
-        if (!isSignedIn && !inAuthScreen) {
-            router.replace("/(auth)/login");
-        } else if (isSignedIn && inAuthScreen) {
-            router.replace("/(tabs)");
-        }
+        // if (!isSignedIn && !inAuthScreen) {
+        //     router.replace("/(auth)/login");
+        // } else if (isSignedIn && inAuthScreen) {
+        //     router.replace("/(tabs)");
+        // }
     }, [isLoaded, isSignedIn, segments]);
 
     if (!isLoaded) return null;
