@@ -33,7 +33,7 @@ export default function login() {
       {/* ILLUSTRATION */}
       <View style={styles.illustrationContainer}>
         <Image
-          source={{uri: "https://storyset.com/illustration/online-wishes/bro"}}
+          source={{uri: "https://drive.google.com/file/d/17gU8qsQ4H4J7VGJwi_SXwW8tMF7cR5WC/view?usp=sharing"}}
           style={styles.illustration}
           resizeMode='cover'
         />
