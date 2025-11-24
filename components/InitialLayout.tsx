@@ -1,9 +1,9 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { AuthProvider } from "../providers/AuthProvider";
 
 export default function InitialLayout() {
-    const { isLoaded, isSignedIn } = useAuth();
+    const { isLoaded, isSignedIn } = AuthProvider();
     const segments = useSegments();
     const router = useRouter();
 
@@ -21,5 +21,5 @@ export default function InitialLayout() {
 
     if (!isLoaded) return null;
 
-    return <Stack screenOptions={{ headerShown: false }} />
+    return <Stack screenOptions={{ headerShown: false }} />;
 }

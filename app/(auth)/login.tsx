@@ -1,18 +1,26 @@
 import { COLORS } from '@/constants/theme';
 import { styles } from '@/styles/auth.styles';
-import { useSSO } from '@clerk/clerk-expo';
+import { useSSO, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
+
+const OFFLINE_USER_KEY = "offlineUserId";
 
 export default function login() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
+  const { user } = useUser();
+
   const handleGoogleSignIn = async () => {
     try {
       const {createdSessionId, setActive} = await startSSOFlow({strategy: 'oauth_google'});
       if (setActive && createdSessionId) {
         setActive({session: createdSessionId});
+        if (user) {
+          await AsyncStorage.setItem(OFFLINE_USER_KEY, user.id);
+        }
         router.replace("/(tabs)");
       }
     } catch (error) {
