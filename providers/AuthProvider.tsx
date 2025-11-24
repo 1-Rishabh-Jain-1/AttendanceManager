@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const OFFLINE_USER_KEY = "offlineUserId";
 
@@ -13,11 +13,14 @@ export function useAuthProvider() {
     const [userId, setUserId] = useState<string | null>(null);
     const [offlineMode, setOfflineMode] = useState(false);
 
+    const offlineLock = useRef(false);
+
     useEffect(() => {
-        let unsub = NetInfo.addEventListener(async state => {
+        const unsubscribe = NetInfo.addEventListener(async (state) => {
             const online = !!(state.isConnected && (state.isInternetReachable ?? true));
 
             if (!online) {
+                offlineLock.current = true;
                 setOfflineMode(true);
 
                 try {
@@ -29,11 +32,13 @@ export function useAuthProvider() {
                 } catch {
                     setIsLoaded(true);
                     setIsSignedIn(false);
+                    setUserId(null);
                 }
 
                 return;
             }
 
+            offlineLock.current = false;
             setOfflineMode(false);
 
             if (ClerkLoaded) {
@@ -43,7 +48,17 @@ export function useAuthProvider() {
             }
         });
 
-        return () => unsub();
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (offlineLock.current) return;
+
+        if (ClerkLoaded) {
+            setIsLoaded(true);
+            setIsSignedIn(!!ClerkSignedIn);
+            setUserId(ClerkUserId ?? null);
+        }
     }, [ClerkLoaded, ClerkSignedIn, ClerkUserId]);
 
     return { isLoaded, isSignedIn, userId, offlineMode };
