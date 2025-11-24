@@ -1,9 +1,9 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
-import { AuthProvider } from "../providers/AuthProvider";
+import { useAuthProvider } from "../providers/AuthProvider";
 
 export default function InitialLayout() {
-    const { isLoaded, isSignedIn } = AuthProvider();
+    const { isLoaded, isSignedIn } = useAuthProvider();
     const segments = useSegments() || [];
     const router = useRouter();
 
