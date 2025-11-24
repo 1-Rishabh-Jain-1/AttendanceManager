@@ -4,13 +4,13 @@ import { AuthProvider } from "../providers/AuthProvider";
 
 export default function InitialLayout() {
     const { isLoaded, isSignedIn } = AuthProvider();
-    const segments = useSegments();
+    const segments = useSegments() || [];
     const router = useRouter();
 
     useEffect(() => {
         if (!isLoaded) return;
 
-        const inAuthScreen = segments[0] === "(auth)";
+        const inAuthScreen = segments.length > 0 && segments[0] === "(auth)";
 
         if (!isSignedIn && !inAuthScreen) {
             router.replace("/(auth)/login");

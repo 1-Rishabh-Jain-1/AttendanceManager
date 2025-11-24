@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useState } from "react";
 
-const OFFLINE_USER_KEY = "userId";
+const OFFLINE_USER_KEY = "offlineUserId";
 export function AuthProvider() {
     const clerk = useAuth();
     const { isLoaded: ClerkLoaded, isSignedIn: ClerkSignedIn, userId: ClerkUserId } = clerk;
