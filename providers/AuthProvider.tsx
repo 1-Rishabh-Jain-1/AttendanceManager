@@ -4,6 +4,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useState } from "react";
 
 const OFFLINE_USER_KEY = "offlineUserId";
+
 export function useAuthProvider() {
     const clerk = useAuth();
     const { isLoaded: ClerkLoaded, isSignedIn: ClerkSignedIn, userId: ClerkUserId } = clerk;
@@ -13,56 +14,31 @@ export function useAuthProvider() {
     const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        let unsub: (() => void) | null = null;
-        NetInfo.fetch().then(state => {
+        let unsub = NetInfo.addEventListener(async state => {
             const online = !!(state.isConnected && (state.isInternetReachable ?? true));
+
             if (online) {
                 if (ClerkLoaded) {
                     setIsLoaded(true);
                     setIsSignedIn(!!ClerkSignedIn);
                     setUserId(ClerkUserId ?? null);
-                } else {
-                    setIsLoaded(false);
                 }
             } else {
-                AsyncStorage.getItem(OFFLINE_USER_KEY).then(saved => {
+                try {
+                    const saved = await AsyncStorage.getItem(OFFLINE_USER_KEY);
                     setIsLoaded(true);
                     setIsSignedIn(!!saved);
                     setUserId(saved);
-                }).catch(() => {
+                } catch {
                     setIsLoaded(true);
                     setIsSignedIn(false);
                     setUserId(null);
-                });
+                }
             }
         });
 
-        unsub = NetInfo.addEventListener(state => {
-            const online = !!(state.isConnected && (state.isInternetReachable ?? true));
-            if (online) {
-                if (ClerkLoaded) {
-                    setIsLoaded(true);
-                    setIsSignedIn(!!ClerkSignedIn);
-                    setUserId(ClerkUserId ?? null);
-                } else {
-                    setIsLoaded(false);
-                }
-            } else {
-                AsyncStorage.getItem(OFFLINE_USER_KEY).then(saved => {
-                    setIsLoaded(true);
-                    setIsSignedIn(!!saved);
-                    setUserId(saved);
-                }).catch(() => {
-                    setIsLoaded(true);
-                    setIsSignedIn(false);
-                    setUserId(null);
-                });
-            }
-        });
-        return () => {
-            if (unsub) unsub();
-        };
+        return () => unsub();
     }, [ClerkLoaded, ClerkSignedIn, ClerkUserId]);
 
     return { isLoaded, isSignedIn, userId, clerk };
-};
+}
