@@ -17,11 +17,15 @@ export default function login() {
     try {
       const {createdSessionId, setActive} = await startSSOFlow({strategy: 'oauth_google'});
       if (setActive && createdSessionId) {
-        setActive({session: createdSessionId});
-        if (user) {
-          await AsyncStorage.setItem(OFFLINE_USER_KEY, user.id);
-        }
-        router.replace("/(tabs)");
+        await setActive({session: createdSessionId});
+
+        const checkUserLoaded = setInterval(async () => {
+          if (user && user.id) {
+            clearInterval(checkUserLoaded);
+            await AsyncStorage.setItem(OFFLINE_USER_KEY, user.id);
+            router.replace("/(tabs)");
+          }
+        }, 300);
       }
     } catch (error) {
       console.log("Error: " + error);
