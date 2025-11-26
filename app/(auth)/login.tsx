@@ -1,6 +1,6 @@
 import { COLORS } from '@/constants/theme';
 import { styles } from '@/styles/auth.styles';
-import { useSSO, useUser } from '@clerk/clerk-expo';
+import { useAuth, useSSO } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from 'expo-router';
@@ -11,7 +11,7 @@ const OFFLINE_USER_KEY = "offlineUserId";
 export default function login() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
-  const { user } = useUser();
+  const { userId } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -19,13 +19,21 @@ export default function login() {
       if (setActive && createdSessionId) {
         await setActive({session: createdSessionId});
 
-        const checkUserLoaded = setInterval(async () => {
-          if (user && user.id) {
-            clearInterval(checkUserLoaded);
-            await AsyncStorage.setItem(OFFLINE_USER_KEY, user.id);
-            router.replace("/(tabs)");
-          }
-        }, 300);
+        if (userId) {
+          await AsyncStorage.setItem(OFFLINE_USER_KEY, userId);
+          console.log(AsyncStorage.getItem(OFFLINE_USER_KEY));
+        }
+        
+        router.replace("/(tabs)");
+        // const checkUserLoaded = setInterval(async () => {
+        //   if (userId && user.id) {
+        //     clearInterval(checkUserLoaded);
+        //     await AsyncStorage.setItem(OFFLINE_USER_KEY, user.id);
+        //     console.log(AsyncStorage.getItem(OFFLINE_USER_KEY));
+            
+        //     router.replace("/(tabs)");
+        //   }
+        // }, 300);
       }
     } catch (error) {
       console.log("Error: " + error);
