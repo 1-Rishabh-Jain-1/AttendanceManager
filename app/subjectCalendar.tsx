@@ -303,7 +303,7 @@ export default function SubjectCalendar() {
         if (!marks[todayStr]) {
             marks[todayStr] = {
                 customStyles: {
-                    text: { color: COLORS.white },
+                    text: { color: COLORS.marking },
                 },
             };
         } else {
@@ -311,7 +311,7 @@ export default function SubjectCalendar() {
                 ...marks[todayStr].customStyles,
                 text: {
                     ...(marks[todayStr].customStyles?.text || {}),
-                    color: COLORS.white,
+                    color: COLORS.marking,
                     fontWeight: "bold",
                 },
             };
